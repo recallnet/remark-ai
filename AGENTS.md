@@ -14,6 +14,9 @@
   least one pending file in `.changeset/`.
 - If there is no pending changeset, the workflow does nothing, even if code in
   a publishable package changed.
+- Do not manually run `npm publish` for workspace packages in this repo.
+  Use the repo's `pnpm`/Changesets publish path so workspace dependencies are
+  rewritten correctly at publish time.
 
 ## codecontext
 
