@@ -116,7 +116,16 @@ export function listRepositoryFiles(cwd) {
 
       const childRel = relDir ? `${relDir}/${name}` : name;
       const childAbs = resolve(cwd, childRel);
-      const entryStat = statSync(childAbs);
+      let entryStat;
+      try {
+        entryStat = statSync(childAbs);
+      } catch (error) {
+        if (error?.code === "ENOENT") {
+          continue;
+        }
+
+        throw error;
+      }
 
       if (entryStat.isDirectory()) {
         queue.push(childRel);

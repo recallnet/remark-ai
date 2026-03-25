@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -58,4 +58,17 @@ test("reports orphan for current file", async () => {
 
   assert.equal(file.messages.length, 1);
   assert.match(String(file.messages[0].reason), /not reachable from policy roots/);
+});
+
+test("skips broken symlinks instead of crashing reachability scanning", () => {
+  const repoDir = initRepo();
+  writeFileSync(join(repoDir, "docs", "z-root.md"), "# Root\n");
+  mkdirSync(join(repoDir, ".agent", "skills", "adversarial-verifier"), { recursive: true });
+  symlinkSync(
+    join(repoDir, "missing-target"),
+    join(repoDir, ".agent", "skills", "adversarial-verifier", "adversarial-verifier")
+  );
+
+  const report = buildReachabilityReport({ cwd: repoDir });
+  assert.deepEqual(report.documents, ["docs/z-root.md"]);
 });
