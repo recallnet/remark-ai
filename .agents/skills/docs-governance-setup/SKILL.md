@@ -58,6 +58,7 @@ pnpm docs:lint
 - every in-scope doc is reachable from rooted entry docs
 - review expirations fail lint deterministically
 - active docs expire quickly enough to force reality checks instead of passive drift
+- the live docs tree stays small and current instead of becoming a graveyard of obsolete docs
 - repo guidance tells contributors not to bypass the policy
 
 ## When customizing
@@ -68,6 +69,9 @@ If the repo already has older docs scripts, replace them with the preset unless 
 
 ## Freshness guidance
 
+- Treat `periodic-7` as the recommended default for active docs. If that feels too aggressive, first ask whether the repo has too many active docs.
 - Prefer deleting stale docs before re-dating them.
+- Git commit history already preserves prior versions. The docs tree should optimize for current truth, not long-term storage of dead docs.
+- `rm` is a strong default behavior for stale, duplicate, or overly narrow docs.
 - Re-date only when the content is already accurate as written.
 - Mark docs `historical` only when they are true records, not as a way to dodge upkeep.
