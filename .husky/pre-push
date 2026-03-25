@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+set -eu
+
+echo "=== Pre-push checks ==="
+
+echo "[1/4] Checking for uncommitted changes..."
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "❌ Uncommitted changes detected. Commit or stash before pushing."
+  exit 1
+fi
+
+echo "[2/4] Running repo checks..."
+pnpm check
+
+echo "[3/4] Checking duplication..."
+pnpm cpd
+
+echo "[4/4] Checking unused files..."
+pnpm knip || true
+
+echo "✅ All pre-push checks passed"

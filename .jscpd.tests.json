@@ -1,0 +1,11 @@
+{
+  "threshold": 5,
+  "reporters": ["console"],
+  "ignore": ["**/node_modules/**", "**/coverage/**", "**/.git/**", "**/.changeset/**"],
+  "pattern": "**/*.test.js",
+  "format": ["javascript"],
+  "minTokens": 50,
+  "minLines": 8,
+  "absolute": true,
+  "gitignore": true
+}

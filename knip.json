@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/**/*.mjs"]
+    },
+    "packages/docs-governance-policy": {
+      "project": ["src/**/*.js"]
+    },
+    "packages/remark-lint-docs-freshness": {
+      "project": ["src/**/*.js", "test/**/*.js"]
+    },
+    "packages/remark-lint-docs-reachability": {
+      "project": ["src/**/*.js", "test/**/*.js"]
+    }
+  },
+  "ignore": []
+}

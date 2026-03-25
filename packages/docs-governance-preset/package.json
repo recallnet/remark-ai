@@ -1,0 +1,47 @@
+{
+  "name": "@recallnet/docs-governance-preset",
+  "version": "0.1.0",
+  "description": "Preset and bootstrap CLI for Recall docs governance in remark-based repos.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/recallnet/remark.git",
+    "directory": "packages/docs-governance-preset"
+  },
+  "homepage": "https://github.com/recallnet/remark",
+  "bugs": {
+    "url": "https://github.com/recallnet/remark/issues"
+  },
+  "keywords": [
+    "remark",
+    "remark-lint",
+    "docs",
+    "governance",
+    "preset"
+  ],
+  "bin": {
+    "recall-docs-governance": "./src/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@recallnet/docs-governance-policy": "workspace:*",
+    "@recallnet/remark-lint-docs-freshness": "workspace:*",
+    "@recallnet/remark-lint-docs-reachability": "workspace:*",
+    "remark-cli": "^12.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-lint-frontmatter-schema": "^3.15.4",
+    "remark-validate-links": "^13.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

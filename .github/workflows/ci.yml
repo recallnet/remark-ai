@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  changeset-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Check for changesets
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep -E '^packages/.*/src/' || true)
+          if [ -n "$CHANGED" ]; then
+            CHANGESETS=$(git diff --name-only origin/main...HEAD | grep -E '^\.changeset/.*\.md$' || true)
+            if [ -z "$CHANGESETS" ]; then
+              echo "::warning::Source files changed in publishable packages but no changeset found. Run 'pnpm changeset' before merging."
+            fi
+          fi

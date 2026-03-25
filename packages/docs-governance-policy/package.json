@@ -1,0 +1,33 @@
+{
+  "name": "@recallnet/docs-governance-policy",
+  "version": "0.1.0",
+  "description": "Shared policy loader and path resolution helpers for docs governance remark plugins.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/recallnet/remark.git",
+    "directory": "packages/docs-governance-policy"
+  },
+  "homepage": "https://github.com/recallnet/remark",
+  "bugs": {
+    "url": "https://github.com/recallnet/remark/issues"
+  },
+  "keywords": [
+    "remark",
+    "remark-plugin",
+    "docs",
+    "governance",
+    "frontmatter"
+  ],
+  "exports": "./src/index.js",
+  "files": [
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

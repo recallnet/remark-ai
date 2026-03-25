@@ -1,0 +1,79 @@
+name: Publish Packages
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.repository == 'recallnet/remark' &&
+      !contains(github.event.head_commit.message, 'chore: version packages [skip ci]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changesets
+        id: changesets
+        run: |
+          output=$(pnpm changeset status 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+          elif echo "$output" | grep -qi "no.*changesets"; then
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::changeset status failed unexpectedly:"
+            echo "$output"
+            exit 1
+          fi
+
+      - name: Build packages
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm build
+
+      - name: Version packages
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm changeset version
+
+      - name: Commit and push version changes
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: version packages [skip ci]" || echo "No changes to commit"
+          git push
+
+      - name: Publish packages
+        if: steps.changesets.outputs.has_changesets == 'true'
+        env:
+          NPM_CONFIG_PROVENANCE: "true"
+        run: pnpm changeset publish
