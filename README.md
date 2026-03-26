@@ -1,15 +1,45 @@
 # remark-ai
 
-Docs governance for coding-agent workflows, built on the remark ecosystem
-instead of hand-rolled markdown parsing.
+Docs governance for coding agents.
 
----
+Not because agents are bad at writing docs.
 
-## The Problem With Agent-Written Docs
+Because they are bad at curating them.
+
+Agents are great at generating markdown that captures context. They are bad at:
+
+- updating old docs instead of writing new ones
+- deleting stale docs instead of preserving them forever
+- linking docs into a navigable graph
+- keeping metadata consistent and truthful
+- noticing when a review date has become fiction
+
+So the failure mode is predictable:
+
+- the docs corpus grows
+- confidence stays high
+- truth decays
+- the next agent reads the wrong thing
+- the repo gets slower and more confusing to change
+
+That is the value proposition here:
+
+**if your agents maintain docs under deterministic governance, later agents make better decisions because the repo's knowledge stays structured, reachable, and current enough to trust.**
+
+This repo is not primarily about human docs. Humans benefit, but that is the
+side effect. The target is agent behavior.
+
+The job is not to politely remind contributors to clean docs up later. The job
+is to make the correct docs behavior the path of least resistance for an agent
+operating in a loop of edit, lint, fix, repeat.
+
+Some of that friction is annoying for humans.
+
+That is exactly why it works for agents.
+
+## The Failure Pattern
 
 An agent touches a subsystem and decides to "document it better."
-
-It does exactly what you asked.
 
 It writes:
 
@@ -18,331 +48,150 @@ It writes:
 - `docs/new-cache-design.md`
 - `docs/redis-notes.md`
 
-All four are coherent. Two are already drifting. One was never linked from
+All four are plausible. Two are already drifting. One is never linked from
 anywhere. All still sound authoritative.
 
 Six weeks later, another agent needs to change caching behavior. It reads the
-wrong doc first, updates code based on dead assumptions, and then writes a
-fifth document trying to reconcile the mess instead of fixing the existing
-ones.
+wrong doc first, updates code based on dead assumptions, and writes a fifth
+document trying to reconcile the mess.
 
-Tests may still pass. Reviews may still pass. The docs tree is what failed.
+Tests may still pass. Review may still pass.
 
-**The problem is not that agents fail to write docs.**
+The docs tree is what failed.
 
-The problem is that they are much better at adding markdown than governing it.
+The problem is not "agents fail to write docs."
 
-Agents are excellent at capturing context in markdown. Give them a blank
-directory and they will happily produce plans, design notes, migration docs,
-debug diaries, and architecture writeups all day.
+The problem is "agents are much better at adding markdown than governing it."
 
-What they are bad at is the maintenance discipline humans tend to postpone but
-eventually do:
+## What This Enforces
 
-- updating an old doc instead of writing a new one
-- deleting a stale doc instead of preserving it forever
-- linking a new doc into a navigable graph
-- keeping metadata structured and truthful
-- noticing when a review date has quietly become fiction
-
-Left alone, they generate the same failure pattern over and over:
-
-- stale docs that still sound authoritative
-- duplicate docs that disagree with each other
-- docs that no one links to but no one deletes
-- frontmatter that drifts from repo policy
-- review dates that become fiction instead of signal
-
-The result is worse than missing docs. You get a tree full of plausible,
-high-confidence lies.
-
-That is the problem this repo solves.
-
-The job is not to politely remind contributors to clean things up later. The
-job is to make the correct docs behavior the path of least resistance for an
-agent operating in a loop of edit, lint, fix, repeat.
-
-This repo is the enforcement layer for that problem.
-
-It gives you simple deterministic tooling that forces agents to do the annoying
-but correct things:
+This repo gives you simple deterministic tooling that forces agents to do the
+annoying but correct things:
 
 - all in-scope markdown docs are structured
 - all live docs are catalogued into a rooted graph
 - optional review windows expire deterministically
-- stale and orphaned docs fail in lint and hooks
+- stale docs fail
+- orphan docs fail
 - repo policy lives in versioned config, not vibes
-- existing remark plugins handle markdown semantics
-- we only add the missing governance rules on top
 
-Some of this friction is annoying for humans.
+The standard is intentionally harsh:
 
-That is exactly why it is useful for agents.
+- if a doc matters, keep it fresh
+- if it does not matter enough to keep fresh, make it historical or delete it
+- if it is live, it should be reachable from rooted docs
+- if it is not reachable, fix the graph or remove the doc
 
-Agents need deterministic pressure to update, consolidate, link, or delete
-docs instead of endlessly adding more surface area.
+Git history is already the archive.
 
-The standard we want is much harsher and much simpler:
-
-- if a doc is important, keep it fresh
-- if a doc is not important enough to keep fresh, make it historical or delete
-  it
-- if a doc is live, it should be reachable from a rooted docs graph
-- if a doc is orphaned, remove it or link it properly
-- git history is already the archive; the live docs tree should describe the
-  current repo, not every thought anyone ever had
+The live docs tree should describe current reality, not every thought an agent
+ever had.
 
 `rm` is a governance feature.
 
-## Why This Works Well For Agents
+## Why This Is Especially Good For Agents
 
 Humans often resist strict docs governance because it feels nitpicky.
 
-Agents are the opposite case. They respond well to deterministic rules:
+Agents respond well to deterministic rules:
 
 - if frontmatter is missing, fail
 - if the doc is orphaned, fail
 - if the review date expired, fail
-- if the doc should be historical or deleted, make that the shortest path to
-  green
+- if the doc should be deleted, deletion is the shortest path to green
 
-This repo is designed around that asymmetry.
+That is the whole design.
 
-## Linked Context Is The Other Half
+Do not hope agents will keep the corpus clean.
 
-This repo gets stronger when paired with `codecontext`.
+Force them to.
 
-If `remark-ai` governs the markdown corpus, `codecontext` governs the
-high-risk edit sites inside code. And the bridge between them is `{@link ...}`.
+## The Bonus: Pair It With codecontext
 
-`codecontext` lets inline `@context` entries point at repo-local files:
+If `remark-ai` governs the markdown corpus, `codecontext` governs high-risk
+edit sites in code.
+
+The combination is much stronger than either tool alone:
+
+- `remark-ai` keeps the docs corpus from becoming stale, orphaned, and
+  misleading
+- `codecontext` stops agents from making locally-reasonable edits that violate
+  hidden constraints
+- linked repo-local docs and skills make those constraints actionable at edit
+  time
+
+With `codecontext`, an inline `@context` can point at a repo-local skill or
+doc:
 
 ```ts
-// @context decision {@link file:.agents/skills/publish-packages/SKILL.md} !critical [verified:2026-03-25] — use pnpm + Changesets, never manual npm publish
+// @context decision {@link file:docs/context/cache-invalidation.md} !critical [verified:2026-03-25] — read this before changing invalidation rules
 ```
 
-That is much more than a citation.
+That gives agents something much better than passive documentation:
 
-For agents, it is an interrupt plus a playbook:
+- an interrupt at the exact edit site
+- a linked playbook with the longer instruction payload
+- linted references
+- freshness enforcement when guarded code changes
 
-- the inline `@context` stops the agent at the edit site
-- the `{@link file:...}` points to the longer instruction payload
-- lint keeps the reference valid
-- freshness gates force re-verification when the guarded code changes
+That is a very agent-native control loop:
 
-This is a much more agent-native control surface than commit archaeology,
-tribal memory, or "please read this wiki first."
+1. agent reads code
+2. agent hits inline context
+3. agent loads linked doc or skill
+4. agent edits
+5. lint forces the repo back into a governed state
 
-## Recommended Linked Context Layout
+The payoff is not just "better docs."
 
-Use two layers:
+It is better downstream agent behavior because the knowledge around the code is
+curated, connected, and still believable.
 
-- `.agents/skills/*`
-  for imperative workflow instructions an agent should load before editing a
-  risky area
-- `docs/context/*`
-  for durable rationale, policy semantics, incident notes, and design
-  constraints that should stay reviewable in the docs tree
+## Why remark
 
-That gives you a clean split:
-
-- skills tell the agent what to do
-- docs explain why the rule exists
-
-## Recommended First Linked Context Targets
-
-For this repo, the first high-value linked contexts should be:
-
-1. package publishing and Changesets flow
-2. docs policy semantics and path matching rules
-3. reachability graph semantics and orphan exceptions
-4. freshness policy semantics and review-window expectations
-5. repo bootstrap / setup behavior for downstream adopters
-
-Concretely, that means adding linked context near code in:
-
-- `packages/docs-governance-policy/src/index.js`
-- `packages/remark-lint-docs-reachability/src/index.js`
-- `packages/remark-lint-docs-freshness/src/index.js`
-- `packages/docs-governance-preset/src/index.js`
-- `.github/workflows/publish-packages.yml`
-
-And pointing them at files like:
-
-- `.agents/skills/publish-packages/SKILL.md`
-- `docs/context/policy-semantics.md`
-- `docs/context/reachability-semantics.md`
-- `docs/context/freshness-semantics.md`
-- `docs/context/bootstrap-contract.md`
-
-The pattern to prefer is:
-
-- short inline summary at the edit site
-- longer repo-local linked artifact with instructions or rationale
-- deterministic enforcement so agents cannot ignore it silently
-
-## Why Remark, Not Another Custom Parser
-
-The markdown ecosystem already solved most of the hard, boring parts:
+Because the remark ecosystem already solved the generic markdown problems:
 
 - frontmatter parsing
 - markdown AST construction
 - link parsing
-- heading / anchor handling
+- heading and anchor handling
 - cross-file link validation
 
-Trying to rebuild that with regexes is a maintenance debt factory.
-
-So this repo does not compete with remark. It composes with it.
-
-We rely on existing packages for generic markdown concerns:
+This repo builds on:
 
 - `remark-frontmatter`
 - `remark-lint-frontmatter-schema`
 - `remark-validate-links`
 
-And we add the missing governance pieces:
+And only adds the missing governance surface:
 
 - `@recallnet/remark-lint-docs-freshness`
 - `@recallnet/remark-lint-docs-reachability`
 - `@recallnet/docs-governance-policy`
 - `@recallnet/docs-governance-preset`
 
-That is the design philosophy of this repo in one sentence:
+That is the core design principle:
 
-**use the ecosystem for markdown semantics; add only the smallest novel surface
-area needed to make docs self-describing, expiring, and enforceable.**
-
-## What This Actually Enforces
-
-### 1. Frontmatter is not optional metadata sludge
-
-Docs declare what they are, who owns them, how they should be reviewed, and
-when they were last reviewed.
-
-Example:
-
-```yaml
----
-doc_type: design
-owner: platform
-review_policy: periodic-7
-reviewed: 2026-03-25
-status: active
-summary: Redis cache invalidation rules for writes and backfills.
-tags:
-  - cache
-  - redis
-written: 2026-03-25
----
-```
-
-If a repo wants active docs, it has to tell the truth about them.
-
-### 2. Review windows expire
-
-If a doc says it follows `periodic-7`, then seven days later it must be
-reviewed again, marked historical, switched to a more appropriate policy, or
-deleted.
-
-That gives you a live docs tree whose timestamps mean something.
-
-### 3. Orphans fail
-
-Important docs should not exist as disconnected markdown blobs.
-
-This repo enforces a rooted docs graph, typically from `docs/INDEX.md`. If an
-in-scope doc is not reachable from the declared roots, lint fails.
-
-That keeps navigation intentional and forces teams to answer a useful question:
-if this doc matters, where do readers discover it?
-
-### 4. Repo policy is explicit
-
-Governance lives in `docs/docs-policy.json`, not in tribal memory.
-
-That policy decides:
-
-- which paths are in scope
-- which review policies exist
-- which paths get which default review policy
-- which docs are graph roots
-- which docs or globs are temporarily excluded
-
-## Why Other Approaches Fall Short
-
-### Commit history
-
-Commit history is a good archive. It is a bad live navigation system and a bad
-source of freshness guarantees.
-
-Git tells you what changed. It does not enforce that a stale doc gets reviewed
-or deleted.
-
-### Wikis and Notion pages
-
-External docs are almost never part of the merge path. They drift because they
-are optional at exactly the moment rigor matters most.
-
-This repo keeps docs governance inside the repo, inside hooks, inside CI.
-
-### "We’ll just tell people to clean docs up"
-
-That fails for the same reason "just be careful" fails in codebases. Standards
-without enforcement decay into vibes.
-
-Agents amplify that failure because they can generate bad-but-convincing docs
-faster than humans notice the damage.
-
-## Recommended Default Operating Model
-
-These defaults are deliberately opinionated.
-
-- active docs default to `periodic-7`
-- `docs/INDEX.md` is the canonical root
-- `docs/templates/**` is excluded from freshness and orphan checks
-- historical docs are allowed, but should be rare and explicit
-- generated or codebound docs should only be used when truly correct
-- if seven-day review feels too aggressive, the first question should be
-  whether the repo has too many active docs
-
-The bias here is intentional:
-
-keep fewer docs, keep them fresher, and delete aggressively.
+**use the ecosystem for markdown semantics; add only the smallest novel surface needed to force agents to curate better repo knowledge.**
 
 ## Quick Start
 
-Install the preset:
-
 ```bash
 pnpm add -D @recallnet/docs-governance-preset
-```
-
-Bootstrap a repo:
-
-```bash
 pnpm exec recall-docs-governance init
-```
-
-Lint docs:
-
-```bash
 pnpm docs:lint
 ```
 
-That generates:
+That bootstraps:
 
 - `docs/docs-policy.json`
 - `docs/docs-frontmatter.schema.json`
 - `.remarkrc.mjs`
 - `docs/INDEX.md`
-- package scripts for docs linting
+- docs lint scripts
 - `AGENTS.md` guidance for repo contributors
 
-After that, the repo has a deterministic docs contract that agents can operate
-against instead of a loose social expectation that they will "keep docs tidy."
-
-## Recommended Config
+Recommended config:
 
 ```js
 import { createDocsGovernanceConfig } from "@recallnet/docs-governance-preset";
@@ -353,60 +202,40 @@ export default createDocsGovernanceConfig({
 });
 ```
 
-## Packages
+## Recommended Defaults
 
-### `@recallnet/docs-governance-policy`
+- active docs default to `periodic-7`
+- `docs/INDEX.md` is the canonical root
+- `docs/templates/**` is excluded from freshness and orphan checks
+- historical docs should be explicit and rare
+- if seven-day review feels too aggressive, the first question should be
+  whether the repo has too many active docs
 
-Shared policy loader and repo-policy semantics:
+Bias toward:
 
-- loads `docs/docs-policy.json`
-- resolves review-policy defaults
-- computes graph roots and allowlists
-- enumerates in-scope markdown files
+- fewer docs
+- fresher docs
+- more links
+- more deletion
 
-### `@recallnet/docs-governance-preset`
+## Package Roles
 
-The easiest adoption path:
+- `@recallnet/docs-governance-preset`
+  one-command adoption path and CLI
+- `@recallnet/docs-governance-policy`
+  shared repo policy semantics
+- `@recallnet/remark-lint-docs-freshness`
+  review-window enforcement
+- `@recallnet/remark-lint-docs-reachability`
+  rooted graph and orphan enforcement
 
-- exports the recommended remark config
-- provides `recall-docs-governance init`
-- provides `recall-docs-governance lint`
-- bootstraps the default repo policy and schema files
-
-### `@recallnet/remark-lint-docs-freshness`
-
-Fails docs whose declared review window has expired.
-
-### `@recallnet/remark-lint-docs-reachability`
-
-Fails docs that are in scope but not reachable from declared roots.
-
-## What This Repo Does Not Try To Do
-
-It does not try to be a full docs platform.
-
-It does not replace:
-
-- architecture docs
-- onboarding guides
-- ADRs
-- project management
-- search
-- wikis
-
-It does one narrower job:
-
-**make repo-native docs auditable, reachable, and fresh enough to trust.**
-
-## QA and Release Model
-
-This repo uses the standard Recall Labs release path:
+## Release Model
 
 - Changesets for versioning
 - npmjs trusted publishing through GitHub Actions
 - Husky hooks for pre-commit and pre-push gates
 - ESLint, Prettier, tests, `jscpd`, and `knip`
-- `codecontext` enforcement for non-obvious repo constraints
+- `codecontext` for inline high-risk context
 
 To ship:
 
@@ -416,18 +245,7 @@ To ship:
 4. merge to `main`
 5. let `.github/workflows/publish-packages.yml` publish
 
-## The Pitch In One Line
+## In One Line
 
-If `codecontext` governs code decisions, this governs docs decisions.
-
-Same philosophy:
-
-- repo-native
-- frontmatter-based
-- enforceable in hooks
-- hostile to drift
-
-Different target:
-
-- not code intent
-- docs truthfulness
+If `codecontext` protects code intent, `remark-ai` protects the agent-written
+knowledge corpus around the code.
