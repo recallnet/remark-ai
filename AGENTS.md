@@ -10,10 +10,14 @@
 - Do not send users to GitHub Packages for install or version verification.
 - npmjs publishing uses GitHub Actions trusted publishing via OIDC, not an
   `NPM_TOKEN` secret.
+- The intended release path is:
+  add a `.changeset/*.md`, commit source changes and the pending changeset,
+  push to `main`, and let CI run `pnpm changeset version` plus publish.
+- Do not run `pnpm changeset version` locally as the normal release path.
+  If you push an already-versioned commit with no pending changeset, the
+  publish workflow will intentionally skip.
 - That workflow only publishes when CI succeeds on `main` and there is at
   least one pending file in `.changeset/`.
-- If there is no pending changeset, the workflow does nothing, even if code in
-  a publishable package changed.
 - Do not manually run `npm publish` for workspace packages in this repo.
   Use the repo's `pnpm`/Changesets publish path so workspace dependencies are
   rewritten correctly at publish time.
