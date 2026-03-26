@@ -18,6 +18,20 @@
   Use the repo's `pnpm`/Changesets publish path so workspace dependencies are
   rewritten correctly at publish time.
 
+## Commits
+
+- This is a Recall Labs project. Use the global `recall-commit` skill as the
+  default commit flow.
+- For every normal commit in this repo, follow the `recall-commit` procedure:
+  gather commit context, stage intentionally, write a conventional commit with
+  structured body sections, reflect on any high-leverage learnings, and capture
+  them when warranted.
+- Use `AGENT-LEARNINGS.md` for confirmed or hypothesis-level learnings that
+  would change how a future agent approaches similar work.
+- Zero learnings is valid. Do not fabricate entries just to satisfy the flow.
+- Never amend after a hook failure. Fix the problem, restage, and create a new
+  commit.
+
 ## codecontext
 
 - Use inline `@context` annotations for non-obvious, high-value reasoning that
