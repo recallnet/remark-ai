@@ -126,7 +126,7 @@ jobs:
             .split('\n')
             .filter(Boolean);
 
-          const baseRef = mode === 'fresh' || mode === 'backfill' ? 'HEAD' : 'HEAD^';
+          const baseRef = mode === 'fresh' ? 'HEAD' : mode === 'recovery' ? 'HEAD^' : null;
           const releases = [];
           for (const file of diff) {
             const after = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -135,13 +135,15 @@ jobs:
             }
 
             let before = null;
-            try {
-              before = JSON.parse(
-                execFileSync('git', ['show', `${baseRef}:${file}`], { encoding: 'utf8' }),
-              );
-            } catch (error) {
-              if (error.status !== 128) {
-                throw error;
+            if (baseRef) {
+              try {
+                before = JSON.parse(
+                  execFileSync('git', ['show', `${baseRef}:${file}`], { encoding: 'utf8' }),
+                );
+              } catch (error) {
+                if (error.status !== 128) {
+                  throw error;
+                }
               }
             }
 
