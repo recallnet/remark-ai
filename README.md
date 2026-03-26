@@ -1,4 +1,4 @@
-# remark-for-ai
+# remark-ai
 
 Docs governance for coding-agent workflows, built on the remark ecosystem
 instead of hand-rolled markdown parsing.
@@ -116,7 +116,7 @@ agent operating in a loop of edit, lint, fix, repeat.
 
 This repo gets stronger when paired with `codecontext`.
 
-If `remark-for-ai` governs the markdown corpus, `codecontext` governs the
+If `remark-ai` governs the markdown corpus, `codecontext` governs the
 high-risk edit sites inside code. And the bridge between them is `{@link ...}`.
 
 `codecontext` lets inline `@context` entries point at repo-local files:

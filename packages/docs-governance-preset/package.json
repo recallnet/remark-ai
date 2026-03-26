@@ -6,12 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/recallnet/remark-for-ai.git",
+    "url": "https://github.com/recallnet/remark-ai.git",
     "directory": "packages/docs-governance-preset"
   },
-  "homepage": "https://github.com/recallnet/remark-for-ai",
+  "homepage": "https://github.com/recallnet/remark-ai",
   "bugs": {
-    "url": "https://github.com/recallnet/remark-for-ai/issues"
+    "url": "https://github.com/recallnet/remark-ai/issues"
   },
   "keywords": [
     "remark",
