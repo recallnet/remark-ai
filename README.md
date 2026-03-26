@@ -112,6 +112,79 @@ The job is not to politely remind contributors to clean things up later. The
 job is to make the correct docs behavior the path of least resistance for an
 agent operating in a loop of edit, lint, fix, repeat.
 
+## Linked Context Is The Other Half
+
+This repo gets stronger when paired with `codecontext`.
+
+If `remark-for-ai` governs the markdown corpus, `codecontext` governs the
+high-risk edit sites inside code. And the bridge between them is `{@link ...}`.
+
+`codecontext` lets inline `@context` entries point at repo-local files:
+
+```ts
+// @context decision {@link file:.agents/skills/publish-packages/SKILL.md} !critical [verified:2026-03-25] — use pnpm + Changesets, never manual npm publish
+```
+
+That is much more than a citation.
+
+For agents, it is an interrupt plus a playbook:
+
+- the inline `@context` stops the agent at the edit site
+- the `{@link file:...}` points to the longer instruction payload
+- lint keeps the reference valid
+- freshness gates force re-verification when the guarded code changes
+
+This is a much more agent-native control surface than commit archaeology,
+tribal memory, or "please read this wiki first."
+
+## Recommended Linked Context Layout
+
+Use two layers:
+
+- `.agents/skills/*`
+  for imperative workflow instructions an agent should load before editing a
+  risky area
+- `docs/context/*`
+  for durable rationale, policy semantics, incident notes, and design
+  constraints that should stay reviewable in the docs tree
+
+That gives you a clean split:
+
+- skills tell the agent what to do
+- docs explain why the rule exists
+
+## Recommended First Linked Context Targets
+
+For this repo, the first high-value linked contexts should be:
+
+1. package publishing and Changesets flow
+2. docs policy semantics and path matching rules
+3. reachability graph semantics and orphan exceptions
+4. freshness policy semantics and review-window expectations
+5. repo bootstrap / setup behavior for downstream adopters
+
+Concretely, that means adding linked context near code in:
+
+- `packages/docs-governance-policy/src/index.js`
+- `packages/remark-lint-docs-reachability/src/index.js`
+- `packages/remark-lint-docs-freshness/src/index.js`
+- `packages/docs-governance-preset/src/index.js`
+- `.github/workflows/publish-packages.yml`
+
+And pointing them at files like:
+
+- `.agents/skills/publish-packages/SKILL.md`
+- `docs/context/policy-semantics.md`
+- `docs/context/reachability-semantics.md`
+- `docs/context/freshness-semantics.md`
+- `docs/context/bootstrap-contract.md`
+
+The pattern to prefer is:
+
+- short inline summary at the edit site
+- longer repo-local linked artifact with instructions or rationale
+- deterministic enforcement so agents cannot ignore it silently
+
 ## Why Remark, Not Another Custom Parser
 
 The markdown ecosystem already solved most of the hard, boring parts:
