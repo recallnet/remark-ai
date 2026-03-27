@@ -20,12 +20,15 @@
     "cpd:tests": "jscpd packages/ --config .jscpd.tests.json",
     "knip": "knip --include files",
     "check": "pnpm format:check && pnpm lint && pnpm test && pnpm build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:lint": "recall-docs-governance lint",
+    "docs:lint:changed": "recall-docs-governance lint --changed"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
     "@types/node": "^22.18.6",
     "@eslint/js": "^9.39.1",
+    "@recallnet/docs-governance-preset": "workspace:*",
     "@recallnet/codecontext-cli": "^0.2.0",
     "@recallnet/codecontext-eslint-plugin": "^0.3.0",
     "eslint": "^9.39.1",

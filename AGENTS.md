@@ -59,3 +59,16 @@
   `npx @recallnet/codecontext-cli --report`
 - Do not use `@context` for obvious narration, duplicated ADR prose, or
   generic comments.
+
+## Docs Governance
+
+- Use the canonical `repo-docs` profile instead of hand-rolled markdown parsing or custom repo layouts.
+- Keep docs frontmatter valid and review dates current.
+- Default active docs to `periodic-7`. If a repo cannot sustain 7-day review, it usually has too many active docs.
+- `review_policy` controls freshness. `status` is lifecycle metadata only and does not bypass review requirements.
+- Use `generated`, `codebound`, or `historical` only when they are genuinely correct, not as an escape hatch from freshness enforcement.
+- Add new docs to the rooted docs graph so orphan checks stay clean.
+- Root the graph from `docs/INDEX.md`.
+- Put templates under `docs/templates/` and keep live curated docs in their canonical taxonomy directories.
+- Prefer deleting stale docs over re-dating them. Git history already preserves old text; the live docs tree should describe current reality, not accumulate dead docs.
+- Run `pnpm docs:lint` before merging doc structure or policy changes.
