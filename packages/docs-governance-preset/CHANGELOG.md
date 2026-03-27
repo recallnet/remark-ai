@@ -1,5 +1,15 @@
 # @recallnet/docs-governance-preset
 
+## 0.2.7
+
+### Patch Changes
+
+- 2f50d29: Reduce docs governance hook latency by short-circuiting `lint --changed`
+  before full remark startup and caching the reachability report for the
+  life of a single lint process.
+- Updated dependencies [2f50d29]
+  - @recallnet/remark-lint-docs-reachability@0.2.4
+
 ## 0.2.6
 
 ### Patch Changes
