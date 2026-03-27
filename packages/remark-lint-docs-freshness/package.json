@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@recallnet/docs-governance-policy": "workspace:*",
-    "yaml": "^2.8.3"
+    "vfile-matter": "^5.0.1"
   },
   "peerDependencies": {
     "remark-frontmatter": "^5.0.0"

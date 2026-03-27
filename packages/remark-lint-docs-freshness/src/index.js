@@ -9,23 +9,9 @@ import {
   resolveDocsReviewPolicy,
   resolveReviewPolicyConfig,
 } from "@recallnet/docs-governance-policy";
-import { parse } from "yaml";
+import { matter } from "vfile-matter";
 
 const RULE_ID = "docs-freshness";
-
-function findYamlNode(tree) {
-  return tree?.children?.find((node) => node.type === "yaml") ?? null;
-}
-
-function parseFrontmatter(tree) {
-  const yamlNode = findYamlNode(tree);
-  if (!yamlNode?.value) {
-    return null;
-  }
-
-  const data = parse(String(yamlNode.value));
-  return data && typeof data === "object" && !Array.isArray(data) ? data : null;
-}
 
 function dateDiffDays(older, newer) {
   const olderMs = new Date(`${older}T00:00:00Z`).getTime();
@@ -58,8 +44,13 @@ export default function remarkLintDocsFreshness(options = {}) {
       return;
     }
 
-    const frontmatter = parseFrontmatter(tree);
-    if (!frontmatter) {
+    matter(file);
+    const frontmatter =
+      file.data.matter && typeof file.data.matter === "object" && !Array.isArray(file.data.matter)
+        ? file.data.matter
+        : null;
+
+    if (!frontmatter || Object.keys(frontmatter).length === 0) {
       file.message("Document freshness could not be checked because frontmatter is unreadable.", {
         ruleId: RULE_ID,
         source: "@recallnet/remark-lint-docs-freshness",

@@ -62,4 +62,5 @@ Document is stale: reviewed=2026-03-01 age_days=18 max_age_days=7.
 
 - Docs with non-periodic policies such as `historical` are ignored.
 - If frontmatter is missing or unreadable for an in-scope file, the rule reports that freshness could not be checked.
+- Frontmatter parsing uses `vfile-matter`, which is the unified-recommended way to expose YAML metadata on `file.data.matter`.
 - This package is intended for docs-governance setups that keep freshness policy in repo config rather than hardcoding date thresholds in lint config.
