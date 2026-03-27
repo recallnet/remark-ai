@@ -1,0 +1,40 @@
+{
+  "name": "@recallnet/remark-lint-docs-taxonomy",
+  "version": "0.1.0",
+  "description": "Remark plugin that enforces policy-driven docs taxonomy paths and filenames.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/recallnet/remark-ai.git",
+    "directory": "packages/remark-lint-docs-taxonomy"
+  },
+  "homepage": "https://github.com/recallnet/remark-ai",
+  "bugs": {
+    "url": "https://github.com/recallnet/remark-ai/issues"
+  },
+  "keywords": [
+    "remark",
+    "remark-lint",
+    "docs",
+    "taxonomy",
+    "frontmatter"
+  ],
+  "exports": "./src/index.js",
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@recallnet/docs-governance-policy": "workspace:*",
+    "yaml": "^2.8.3"
+  },
+  "peerDependencies": {
+    "remark-frontmatter": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -56,3 +56,4 @@ This package intentionally complements:
 
 - `remark-validate-links` for link validity
 - `remark-lint-frontmatter-schema` for frontmatter schema checks
+- `@recallnet/remark-lint-docs-taxonomy` for path and filename enforcement

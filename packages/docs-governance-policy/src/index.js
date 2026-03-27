@@ -56,8 +56,36 @@ export function isDocsPathInScope(pathValue, policy) {
   return inScopePaths.some((pattern) => matchesDocsPolicyPattern(normalizedPath, pattern));
 }
 
+export function isDocsPathExcluded(pathValue, patterns = []) {
+  const normalizedPath = normalizePath(pathValue);
+  return patterns.some((pattern) => matchesDocsPolicyPattern(normalizedPath, pattern));
+}
+
 export function isMarkdownPath(pathValue) {
   return normalizePath(pathValue).toLowerCase().endsWith(".md");
+}
+
+export function getDocsPolicyProfile(policy) {
+  return typeof policy?.profile === "string" ? policy.profile : null;
+}
+
+// @context requirement !high [verified:2026-03-26] — Taxonomy exclusion defaults to frontmatter exclusions.
+// Templates should stay out of schema, freshness, reachability, and taxonomy checks unless a repo opts into a narrower taxonomy-specific exclusion set.
+export function resolveTaxonomyExcludeGlobs(policy) {
+  const taxonomyExcludes = Array.isArray(policy?.taxonomy?.exclude_globs)
+    ? policy.taxonomy.exclude_globs
+    : [];
+
+  if (taxonomyExcludes.length > 0) {
+    return taxonomyExcludes;
+  }
+
+  return Array.isArray(policy?.frontmatter_exclude_globs) ? policy.frontmatter_exclude_globs : [];
+}
+
+export function resolveTaxonomyRule(docType, policy) {
+  const docTypes = Array.isArray(policy?.taxonomy?.doc_types) ? policy.taxonomy.doc_types : [];
+  return docTypes.find((entry) => entry?.id === docType) ?? null;
 }
 
 const DEFAULT_EXCLUDED_DIRECTORIES = new Set([
@@ -244,10 +272,7 @@ export function collectInScopeMarkdownFiles(cwd, policy) {
   return listRepositoryFiles(cwd, { roots: traversalRoots })
     .filter(isMarkdownPath)
     .filter((pathValue) => isDocsPathInScope(pathValue, policy))
-    .filter(
-      (pathValue) =>
-        !frontmatterExcludeGlobs.some((pattern) => matchesDocsPolicyPattern(pathValue, pattern))
-    )
+    .filter((pathValue) => !isDocsPathExcluded(pathValue, frontmatterExcludeGlobs))
     .sort((left, right) => left.localeCompare(right, "en"));
 }
 

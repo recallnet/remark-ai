@@ -2,11 +2,12 @@
 
 One-package bootstrap for Recall docs governance.
 
-It wires the existing remark ecosystem plus Recall's two novel rules:
+It wires the existing remark ecosystem plus Recall's governance rules:
 
 - `remark-frontmatter`
 - `remark-lint-frontmatter-schema`
 - `remark-validate-links`
+- `@recallnet/remark-lint-docs-taxonomy`
 - `@recallnet/remark-lint-docs-freshness`
 - `@recallnet/remark-lint-docs-reachability`
 
@@ -14,7 +15,7 @@ It wires the existing remark ecosystem plus Recall's two novel rules:
 
 ```bash
 pnpm add -D @recallnet/docs-governance-preset
-pnpm exec recall-docs-governance init
+pnpm exec recall-docs-governance init --profile repo-docs
 ```
 
 Then run:

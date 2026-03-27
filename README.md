@@ -74,6 +74,7 @@ annoying but correct things:
 - stale docs fail
 - orphan docs fail
 - repo policy lives in versioned config, not vibes
+- doc paths and filenames match the declared taxonomy
 
 The standard is intentionally harsh:
 
@@ -98,6 +99,7 @@ Agents respond well to deterministic rules:
 - if frontmatter is missing, fail
 - if the doc is orphaned, fail
 - if the review date expired, fail
+- if the doc is in the wrong place, fail
 - if the doc should be deleted, deletion is the shortest path to green
 
 That is the whole design.
@@ -165,6 +167,7 @@ This repo builds on:
 
 And only adds the missing governance surface:
 
+- `@recallnet/remark-lint-docs-taxonomy`
 - `@recallnet/remark-lint-docs-freshness`
 - `@recallnet/remark-lint-docs-reachability`
 - `@recallnet/docs-governance-policy`
@@ -174,11 +177,26 @@ That is the core design principle:
 
 **use the ecosystem for markdown semantics; add only the smallest novel surface needed to force agents to curate better repo knowledge.**
 
+## Canonical Profile
+
+This repo now treats `repo-docs` as the canonical built-in profile.
+
+That profile standardizes:
+
+- `docs/INDEX.md` as the single rooted entry doc
+- `docs/templates/` as the template directory
+- snake_case frontmatter such as `doc_type`, `review_policy`, `reviewed`, `written`
+- deterministic taxonomy rules for decisions, observations, how-to docs,
+  reference docs, explanations, and runbooks
+
+The higher-level `repo-docs` skill should orchestrate this profile rather than
+maintain a separate docs schema or folder contract.
+
 ## Quick Start
 
 ```bash
 pnpm add -D @recallnet/docs-governance-preset
-pnpm exec recall-docs-governance init
+pnpm exec recall-docs-governance init --profile repo-docs
 pnpm docs:lint
 ```
 
@@ -188,6 +206,7 @@ That bootstraps:
 - `docs/docs-frontmatter.schema.json`
 - `.remarkrc.mjs`
 - `docs/INDEX.md`
+- `docs/templates/*.md`
 - docs lint scripts
 - `AGENTS.md` guidance for repo contributors
 
@@ -197,6 +216,7 @@ Recommended config:
 import { createDocsGovernanceConfig } from "@recallnet/docs-governance-preset";
 
 export default createDocsGovernanceConfig({
+  profile: "repo-docs",
   policyPath: "./docs/docs-policy.json",
   frontmatterSchemaPath: "./docs/docs-frontmatter.schema.json",
 });
@@ -206,8 +226,9 @@ export default createDocsGovernanceConfig({
 
 - active docs default to `periodic-7`
 - `docs/INDEX.md` is the canonical root
-- `docs/templates/**` is excluded from freshness and orphan checks
+- `docs/templates/**` is excluded from schema, taxonomy, freshness, and orphan checks
 - historical docs should be explicit and rare
+- `review_policy` controls freshness and `status` remains lifecycle metadata
 - if seven-day review feels too aggressive, the first question should be
   whether the repo has too many active docs
 
@@ -224,6 +245,8 @@ Bias toward:
   one-command adoption path and CLI
 - `@recallnet/docs-governance-policy`
   shared repo policy semantics
+- `@recallnet/remark-lint-docs-taxonomy`
+  path and filename enforcement for declared doc types
 - `@recallnet/remark-lint-docs-freshness`
   review-window enforcement
 - `@recallnet/remark-lint-docs-reachability`
@@ -239,13 +262,7 @@ Bias toward:
 
 To ship:
 
-1. `pnpm install`
-2. `pnpm check`
-3. add a `.changeset/*.md`
-4. merge to `main`
-5. let `.github/workflows/publish-packages.yml` publish
-
-## In One Line
-
-If `codecontext` protects code intent, `remark-ai` protects the agent-written
-knowledge corpus around the code.
+- add a `.changeset/*.md`
+- commit the package changes and pending changeset
+- push to `main`
+- let CI version and publish through the repo workflow

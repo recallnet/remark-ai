@@ -6,3 +6,4 @@ Shared helpers for docs governance rules:
 - match policy globs
 - resolve review-policy defaults
 - compute reachability roots and orphan allowlists
+- resolve taxonomy rules and exclusions

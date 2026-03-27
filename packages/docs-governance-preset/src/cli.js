@@ -6,6 +6,7 @@ function parseArgs(argv) {
   const options = {
     command,
     changed: false,
+    dryRun: false,
     force: false,
     gitMode: "staged",
     quiet: false,
@@ -21,6 +22,11 @@ function parseArgs(argv) {
 
     if (value === "--force") {
       options.force = true;
+      continue;
+    }
+
+    if (value === "--dry-run") {
+      options.dryRun = true;
       continue;
     }
 
@@ -57,6 +63,12 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (value === "--profile") {
+      options.profile = rest[index + 1];
+      index += 1;
+      continue;
+    }
+
     throw new Error(`Unknown argument: ${value}`);
   }
 
@@ -65,7 +77,8 @@ function parseArgs(argv) {
 
 function printHelp() {
   process.stdout.write(`Usage:
-  recall-docs-governance init [--dir <path>] [--force]
+  recall-docs-governance init [--dir <path>] [--profile <name>] [--force]
+  recall-docs-governance populate [--dir <path>] [--profile <name>] [--force] [--dry-run]
   recall-docs-governance lint [--dir <path>] [--changed] [--git-mode staged|head]
     [--files-from <path> | --stdin0] [--quiet]
 `);
@@ -81,7 +94,23 @@ try {
 
   if (options.command === "init") {
     const { initDocsGovernanceRepo } = await import("./runtime.js");
-    const result = initDocsGovernanceRepo({ cwd: options.cwd, force: options.force });
+    const result = initDocsGovernanceRepo({
+      cwd: options.cwd,
+      force: options.force,
+      profile: options.profile,
+    });
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    process.exit(0);
+  }
+
+  if (options.command === "populate") {
+    const { populateDocsGovernanceRepo } = await import("./populate.js");
+    const result = populateDocsGovernanceRepo({
+      cwd: options.cwd,
+      dryRun: options.dryRun,
+      force: options.force,
+      profile: options.profile,
+    });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     process.exit(0);
   }

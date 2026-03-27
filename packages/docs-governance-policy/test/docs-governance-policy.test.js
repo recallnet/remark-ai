@@ -7,7 +7,10 @@ import test from "node:test";
 import {
   collectInScopeMarkdownFiles,
   deriveTraversalRoots,
+  getDocsPolicyProfile,
   listRepositoryFiles,
+  resolveTaxonomyExcludeGlobs,
+  resolveTaxonomyRule,
 } from "../src/index.js";
 
 test("deriveTraversalRoots narrows traversal to static policy prefixes", () => {
@@ -48,4 +51,26 @@ test("collectInScopeMarkdownFiles supports exact file scope paths", () => {
   };
 
   assert.deepEqual(collectInScopeMarkdownFiles(repoDir, policy), ["docs/INDEX.md"]);
+});
+
+test("taxonomy helpers resolve profile, rule, and exclusions", () => {
+  const policy = {
+    profile: "repo-docs",
+    frontmatter_exclude_globs: ["docs/templates/**"],
+    taxonomy: {
+      doc_types: [
+        {
+          id: "decision",
+          path_globs: ["docs/decisions/**"],
+        },
+      ],
+    },
+  };
+
+  assert.equal(getDocsPolicyProfile(policy), "repo-docs");
+  assert.deepEqual(resolveTaxonomyExcludeGlobs(policy), ["docs/templates/**"]);
+  assert.deepEqual(resolveTaxonomyRule("decision", policy), {
+    id: "decision",
+    path_globs: ["docs/decisions/**"],
+  });
 });

@@ -15,8 +15,7 @@ import {
   createAgentsSection,
   createIndexSource,
   createRemarkConfigSource,
-  defaultDocsPolicy,
-  defaultFrontmatterSchema,
+  getDocsGovernanceProfile,
 } from "./templates.js";
 
 export const LINT_FAILURE_EXIT_CODE = 1;
@@ -24,6 +23,15 @@ export const FATAL_FAILURE_EXIT_CODE = 2;
 
 function ensureDirectory(pathValue) {
   mkdirSync(dirname(pathValue), { recursive: true });
+}
+
+function ensureDirectoryIfMissing(pathValue, created, force = false) {
+  if (!force && existsSync(pathValue)) {
+    return;
+  }
+
+  mkdirSync(pathValue, { recursive: true });
+  created.push(`${pathValue.replace(/\\/g, "/")}/`);
 }
 
 function writeFileIfMissing(pathValue, contents, force = false) {
@@ -72,31 +80,53 @@ export function initDocsGovernanceRepo(options = {}) {
   const cwd = options.cwd ? resolve(options.cwd) : process.cwd();
   const force = options.force === true;
   const today = options.today ?? new Date().toISOString().slice(0, 10);
+  const profile = getDocsGovernanceProfile(options.profile);
 
   const created = [];
 
+  for (const relativeDir of profile.coreDirectories) {
+    ensureDirectoryIfMissing(resolve(cwd, relativeDir), created, force);
+  }
+
   const docsPolicyPath = resolve(cwd, "docs", "docs-policy.json");
   if (
-    writeFileIfMissing(docsPolicyPath, `${JSON.stringify(defaultDocsPolicy, null, 2)}\n`, force)
+    writeFileIfMissing(docsPolicyPath, `${JSON.stringify(profile.docsPolicy, null, 2)}\n`, force)
   ) {
     created.push("docs/docs-policy.json");
   }
 
   const schemaPath = resolve(cwd, "docs", "docs-frontmatter.schema.json");
   if (
-    writeFileIfMissing(schemaPath, `${JSON.stringify(defaultFrontmatterSchema, null, 2)}\n`, force)
+    writeFileIfMissing(
+      schemaPath,
+      `${JSON.stringify(profile.frontmatterSchema, null, 2)}\n`,
+      force
+    )
   ) {
     created.push("docs/docs-frontmatter.schema.json");
   }
 
   const remarkConfigPath = resolve(cwd, ".remarkrc.mjs");
-  if (writeFileIfMissing(remarkConfigPath, createRemarkConfigSource(), force)) {
+  if (
+    writeFileIfMissing(
+      remarkConfigPath,
+      createRemarkConfigSource({ profile: profile.id }),
+      force
+    )
+  ) {
     created.push(".remarkrc.mjs");
   }
 
   const indexPath = resolve(cwd, "docs", "INDEX.md");
   if (writeFileIfMissing(indexPath, createIndexSource(today), force)) {
     created.push("docs/INDEX.md");
+  }
+
+  for (const [relativePath, source] of Object.entries(profile.templateSources)) {
+    const templatePath = resolve(cwd, relativePath);
+    if (writeFileIfMissing(templatePath, source, force)) {
+      created.push(relativePath);
+    }
   }
 
   if (upsertPackageScripts(cwd)) {
@@ -109,6 +139,7 @@ export function initDocsGovernanceRepo(options = {}) {
 
   return {
     cwd,
+    profile: profile.id,
     created,
   };
 }
