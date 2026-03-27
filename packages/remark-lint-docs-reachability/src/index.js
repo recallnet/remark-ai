@@ -170,6 +170,8 @@ export function buildReachabilityReport(options = {}) {
 }
 
 export default function remarkLintDocsReachability(options = {}) {
+  let cachedReport = null;
+
   return (_tree, file) => {
     const cwd = options.cwd ? resolve(options.cwd) : process.cwd();
     const filePath = file.path ? normalizePath(relative(cwd, file.path)) : "";
@@ -178,7 +180,10 @@ export default function remarkLintDocsReachability(options = {}) {
       return;
     }
 
-    const report = buildReachabilityReport({ cwd, policyPath: options.policyPath });
+    // @context decision !high [verified:2026-03-27] — Cache the reachability report for the lifetime of one remark process.
+    // remark invokes this rule once per file, but the orphan graph is repo-global. Rebuilding it per file turned 100-doc hooks into dozens of redundant full-doc parses.
+    cachedReport ??= buildReachabilityReport({ cwd, policyPath: options.policyPath });
+    const report = cachedReport;
     if (report.orphanDocuments.includes(filePath)) {
       file.message(`Document is not reachable from policy roots: ${filePath}`, {
         ruleId: RULE_ID,

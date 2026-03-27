@@ -60,6 +60,24 @@ test("reports orphan for current file", async () => {
   assert.match(String(file.messages[0].reason), /not reachable from policy roots/);
 });
 
+test("caches reachability graph for one remark process", async () => {
+  const repoDir = initRepo();
+  const rootPath = join(repoDir, "docs", "z-root.md");
+  const orphanPath = resolve(repoDir, "docs", "m-orphan.md");
+  writeFileSync(rootPath, "# Root\n");
+  writeFileSync(orphanPath, "# Orphan\n");
+
+  const processor = remark().use(remarkLintDocsReachability, { cwd: repoDir });
+
+  const firstFile = await processor.process({ path: orphanPath, value: "# Orphan\n" });
+  assert.equal(firstFile.messages.length, 1);
+
+  writeFileSync(rootPath, "# Root\n\n[Orphan](./m-orphan.md)\n");
+
+  const secondFile = await processor.process({ path: orphanPath, value: "# Orphan\n" });
+  assert.equal(secondFile.messages.length, 1);
+});
+
 test("skips broken symlinks instead of crashing reachability scanning", () => {
   const repoDir = initRepo();
   writeFileSync(join(repoDir, "docs", "z-root.md"), "# Root\n");

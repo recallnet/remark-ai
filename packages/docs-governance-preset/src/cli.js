@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { initDocsGovernanceRepo, lintDocsGovernance } from "./index.js";
 
 function parseArgs(argv) {
   const [command = "help", ...rest] = argv;
@@ -49,12 +48,14 @@ try {
   }
 
   if (options.command === "init") {
+    const { initDocsGovernanceRepo } = await import("./runtime.js");
     const result = initDocsGovernanceRepo({ cwd: options.cwd, force: options.force });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     process.exit(0);
   }
 
   if (options.command === "lint") {
+    const { lintDocsGovernance } = await import("./runtime.js");
     lintDocsGovernance({ cwd: options.cwd, changed: options.changed });
     process.exit(0);
   }
