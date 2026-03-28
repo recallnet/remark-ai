@@ -223,11 +223,13 @@ jobs:
               gh release edit "$tag" \
                 --title "$package_name@$version" \
                 --notes "$body"
-            else
+            elif git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
               gh release create "$tag" \
                 --verify-tag \
                 --title "$package_name@$version" \
                 --notes "$body"
+            else
+              echo "Skipping release for $tag — tag does not exist on remote"
             fi
           done < "$RUNNER_TEMP/release-lines.tsv"
       - name: Open ticket on failure
