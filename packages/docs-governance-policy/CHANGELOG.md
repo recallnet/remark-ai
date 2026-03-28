@@ -1,5 +1,11 @@
 # @recallnet/docs-governance-policy
 
+## 0.3.0
+
+### Minor Changes
+
+- aaf1816: Add the canonical `repo-docs` profile to the docs governance preset, including policy-driven taxonomy enforcement, generated templates, and profile-aware init/config support.
+
 ## 0.2.3
 
 ### Patch Changes
