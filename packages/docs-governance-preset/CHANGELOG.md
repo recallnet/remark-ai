@@ -1,5 +1,13 @@
 # @recallnet/docs-governance-preset
 
+## 0.3.1
+
+### Patch Changes
+
+- 20757a8: Fix taxonomy package published with unresolved workspace:\* dependency. Republish with correct version reference through Changesets.
+- Updated dependencies [20757a8]
+  - @recallnet/remark-lint-docs-taxonomy@0.2.1
+
 ## 0.3.0
 
 ### Minor Changes
