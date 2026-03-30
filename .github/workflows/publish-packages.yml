@@ -21,6 +21,7 @@ jobs:
       id-token: write
       actions: read
       issues: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -153,8 +154,10 @@ jobs:
             releases.push({
               packageName: after.name,
               version: after.version,
+              directory: path.dirname(file),
               tag: `${after.name}@${after.version}`,
               npmUrl: `https://www.npmjs.com/package/${after.name}/v/${after.version}`,
+              ghRegistry: 'https://npm.pkg.github.com',
             });
           }
 
@@ -180,7 +183,94 @@ jobs:
           steps.releases.outputs.release_count != '0'
         env:
           NPM_CONFIG_PROVENANCE: "true"
-        run: pnpm changeset publish
+          RELEASE_MANIFEST: ${{ steps.releases.outputs.release_manifest }}
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+
+          const releases = JSON.parse(fs.readFileSync(process.env.RELEASE_MANIFEST, 'utf8'));
+          for (const release of releases) {
+            const spec = `${release.packageName}@${release.version}`;
+            let published = false;
+            try {
+              const existing = execFileSync(
+                'npm',
+                ['view', spec, 'version', '--registry=https://registry.npmjs.org'],
+                { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+              ).trim();
+              published = existing === release.version;
+            } catch (error) {
+              if (error.status !== 1) {
+                throw error;
+              }
+            }
+
+            if (published) {
+              console.log(`npmjs already has ${spec}; skipping publish`);
+              continue;
+            }
+
+            execFileSync(
+              'npm',
+              ['publish', '.', '--provenance', '--registry=https://registry.npmjs.org'],
+              { cwd: release.directory, stdio: 'inherit' },
+            );
+          }
+          EOF
+
+      - name: Configure GitHub Packages auth
+        if: >-
+          steps.release_mode.outputs.should_publish == 'true' &&
+          steps.releases.outputs.release_count != '0'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@recallnet"
+
+      - name: Publish packages to GitHub Packages
+        if: >-
+          steps.release_mode.outputs.should_publish == 'true' &&
+          steps.releases.outputs.release_count != '0'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "false"
+          RELEASE_MANIFEST: ${{ steps.releases.outputs.release_manifest }}
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+
+          const releases = JSON.parse(fs.readFileSync(process.env.RELEASE_MANIFEST, 'utf8'));
+          for (const release of releases) {
+            const spec = `${release.packageName}@${release.version}`;
+            let published = false;
+            try {
+              const existing = execFileSync(
+                'npm',
+                ['view', spec, 'version', '--registry=https://npm.pkg.github.com'],
+                { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+              ).trim();
+              published = existing === release.version;
+            } catch (error) {
+              if (error.status !== 1) {
+                throw error;
+              }
+            }
+
+            if (published) {
+              console.log(`GitHub Packages already has ${spec}; skipping publish`);
+              continue;
+            }
+
+            execFileSync(
+              'npm',
+              ['publish', '.', '--registry=https://npm.pkg.github.com'],
+              { cwd: release.directory, stdio: 'inherit' },
+            );
+          }
+          EOF
 
       - name: Push release tags
         if: >-
@@ -202,9 +292,10 @@ jobs:
           const releases = JSON.parse(fs.readFileSync(process.env.RELEASE_MANIFEST, 'utf8'));
           for (const release of releases) {
             const body = [
-              `${release.packageName} ${release.version} was published to npmjs from this workflow run.`,
+              `${release.packageName} ${release.version} was published to npmjs and mirrored to GitHub Packages from this workflow run.`,
               '',
               `npm: ${release.npmUrl}`,
+              `github-packages-registry: ${release.ghRegistry}`,
             ].join('\n');
             process.stdout.write([
               release.tag,
